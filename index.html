@@ -106,6 +106,8 @@ table.ke-t tbody tr:hover td{background:rgba(255,255,255,.012);}
 
 /* INSTAGRAM KPIs + TABLE */
 .ig-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:12px;}
+.ig-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;}
+@media(max-width:700px){.ig-sum{grid-template-columns:1fr;}}
 @media(max-width:900px){.ig-kpis{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:560px){.ig-kpis{grid-template-columns:repeat(2,1fr);}}
 .ig-t td,.ig-t th{white-space:nowrap;}
@@ -183,15 +185,12 @@ table.ke-t tbody tr:hover td{background:rgba(255,255,255,.012);}
 
   <div class="ke-pg-sub" id="ig-err" style="color:var(--ke-bad);margin:-16px 0 20px"></div>
 
-  <!-- Bloque 1 — KPIs -->
-  <div class="ke-sec-head"><div class="ke-sec-line"></div><span class="ke-sec-label">KPIs de cuenta</span></div>
-  <div class="ig-kpis">
+  <!-- Bloque 1 — Resumen (conteos; el detalle de alcance/reproducciones/etc. está en Rendimiento) -->
+  <div class="ke-sec-head"><div class="ke-sec-line"></div><span class="ke-sec-label">Resumen de cuenta</span></div>
+  <div class="ig-sum">
     <div class="ke-kc"><div class="ke-kl">Seguidores</div><div class="ke-kv" id="ig-followers">—</div><div class="ke-ks" id="ig-ks-followers">Total de la cuenta</div></div>
-    <div class="ke-kc b"><div class="ke-kl">Alcance</div><div class="ke-kv b" id="ig-reach">—</div><div class="ke-ks" id="ig-ks-reach">Cuentas alcanzadas</div></div>
-    <div class="ke-kc b"><div class="ke-kl">Reproducciones</div><div class="ke-kv b" id="ig-views">—</div><div class="ke-ks" id="ig-ks-views">Views de contenido</div></div>
-    <div class="ke-kc g"><div class="ke-kl">Interacciones</div><div class="ke-kv g" id="ig-inter">—</div><div class="ke-ks" id="ig-ks-inter">Likes + coment. + guardados + comp.</div></div>
-    <div class="ke-kc p"><div class="ke-kl">Visitas al perfil</div><div class="ke-kv p" id="ig-profile">—</div><div class="ke-ks" id="ig-ks-profile">Visitas al perfil</div></div>
-    <div class="ke-kc o"><div class="ke-kl">Clics en sitio web</div><div class="ke-kv o" id="ig-web">—</div><div class="ke-ks" id="ig-ks-web">Clics al sitio</div></div>
+    <div class="ke-kc b"><div class="ke-kl">Publicaciones en feed</div><div class="ke-kv b" id="ig-postcount">—</div><div class="ke-ks" id="ig-ks-postcount">En el período seleccionado</div></div>
+    <div class="ke-kc p"><div class="ke-kl">Stories publicadas</div><div class="ke-kv p" id="ig-storycount">—</div><div class="ke-ks" id="ig-ks-storycount">En el período seleccionado</div></div>
   </div>
 
   <!-- Bloque 0 — Rendimiento diario -->
@@ -253,6 +252,18 @@ table.ke-t tbody tr:hover td{background:rgba(255,255,255,.012);}
           <th>Me gusta</th><th>Coment.</th><th>Guardados</th><th>Compart.</th><th>Nuevos seg.</th>
         </tr></thead>
         <tbody id="ig-tbody"><tr><td colspan="12" class="ke-pg-sub">Cargando…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Stories -->
+  <div class="ke-sec-head"><div class="ke-sec-line b"></div><span class="ke-sec-label">Stories · período seleccionado</span><span class="ke-sec-pill ke-pill-orange" id="ig-stat-stories">—</span></div>
+  <div class="ke-block">
+    <div class="ke-block-top"></div>
+    <div style="overflow-x:auto">
+      <table class="ke-t ig-t">
+        <thead><tr><th>Fecha</th><th>Tipo</th><th class="acc">Alcance</th><th class="acc">Views</th><th class="acc">Interac.</th><th>Respuestas</th><th>Enlace</th></tr></thead>
+        <tbody id="ig-stbody"><tr><td colspan="7" class="ke-pg-sub">Cargando…</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -419,11 +430,12 @@ labelRange();
   function igKs(id,cur,prev,fb){ const e=document.getElementById(id); if(!e)return; const dh=(prev==null||prev===false||prev===undefined)?null:igDelta(cur,prev); e.innerHTML=dh||fb; }
   async function igLoad(){
     try{
-      const [life,daily,posts,demo]=await Promise.all([
+      const [life,daily,posts,demo,stories]=await Promise.all([
         igGet(T('account_lifetime'),'fecha,username,followers,media_count,follows'),
         igGet(T('account_daily'),'fecha,account_reach,account_views,account_total_interactions,account_profile_views,account_website_clicks'),
         igGet(T('posts_media'),'thumbnail_url,permalink,date_published,media_product_type,caption,reach,views,total_interactions,likes,comments,saved,shares,follows_from_post'),
-        igGet(T('demographics'),'age,gender,follower_demographics_count')
+        igGet(T('demographics'),'age,gender,follower_demographics_count'),
+        igGet('mcrun_ig_stories','media_id,media_type,date_published,permalink,reach,views,total_interactions,replies')
       ]);
       const LP=igPick(life), DP=igPick(daily);
       const L=LP.cur||{}, Lp=LP.prev, D=DP.cur||{}, Dp=DP.prev;
@@ -478,6 +490,22 @@ labelRange();
       }).join('');
       document.getElementById('ig-tbody').innerHTML=rowsHTML||'<tr><td colspan="12" class="ke-pg-sub">Sin publicaciones en el período.</td></tr>';
       igSet('ig-stat-posts','Top '+top.length+' del período');
+      igSet('ig-postcount',igInt(monthly.length));
+
+      // ---- Stories del período ----
+      const stInRange=(stories||[]).filter(p=>{const d=new Date(p.date_published);return !isNaN(d)&&d>=_pf&&d<=_pt;});
+      stInRange.sort((a,b)=>new Date(b.date_published)-new Date(a.date_published));
+      igSet('ig-storycount',igInt(stInRange.length));
+      igSet('ig-stat-stories',stInRange.length+' en el período');
+      const stTipo={STORY:'Story',IMAGE:'Imagen',VIDEO:'Video'};
+      const stRows=stInRange.map(p=>{
+        const link=p.permalink?('<a href="'+igEsc(p.permalink)+'" target="_blank" rel="noopener" style="color:var(--ke-orange)">Ver</a>'):'—';
+        return '<tr><td>'+fdate(p.date_published)+'</td>'
+          +'<td><span class="ke-chip ke-c-neutral">'+igEsc(stTipo[p.media_type]||p.media_type||'Story')+'</span></td>'
+          +'<td>'+igInt(p.reach)+'</td><td>'+igInt(p.views)+'</td><td>'+igInt(p.total_interactions)+'</td>'
+          +'<td>'+igInt(p.replies)+'</td><td>'+link+'</td></tr>';
+      }).join('');
+      const stb=document.getElementById('ig-stbody'); if(stb) stb.innerHTML=stRows||'<tr><td colspan="7" class="ke-pg-sub">Sin stories registradas en el período (se capturan desde el 20/07 en adelante).</td></tr>';
 
       const ages=['13-17','18-24','25-34','35-44','45-54','55-64','65+'];
       const byAge=ages.map(a=>demo.filter(d=>d.age===a).reduce((s,d)=>s+(+d.follower_demographics_count||0),0));
