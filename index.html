@@ -262,8 +262,8 @@ table.ke-t tbody tr:hover td{background:rgba(255,255,255,.012);}
     <div class="ke-block-top"></div>
     <div style="overflow-x:auto">
       <table class="ke-t ig-t">
-        <thead><tr><th>Preview</th><th>Fecha</th><th>Tipo</th><th class="acc">Alcance</th><th class="acc">Views</th><th class="acc">Interac.</th><th>Respuestas</th><th>Enlace</th></tr></thead>
-        <tbody id="ig-stbody"><tr><td colspan="8" class="ke-pg-sub">Cargando…</td></tr></tbody>
+        <thead><tr><th>Preview</th><th>Fecha</th><th>Tipo</th><th class="acc">Alcance</th><th class="acc">Views</th><th class="acc">Interac.</th><th>Respuestas</th></tr></thead>
+        <tbody id="ig-stbody"><tr><td colspan="7" class="ke-pg-sub">Cargando…</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -499,15 +499,14 @@ labelRange();
       igSet('ig-stat-stories',stInRange.length+' en el período');
       const stTipo={STORY:'Story',IMAGE:'Imagen',VIDEO:'Video'};
       const stRows=stInRange.map(p=>{
-        const link=p.permalink?('<a href="'+igEsc(p.permalink)+'" target="_blank" rel="noopener" style="color:var(--ke-orange)">Ver</a>'):'—';
         const sth=p.media_backup_url?('<img class="ig-thumb" src="'+igEsc(p.media_backup_url)+'" loading="lazy" onerror="this.style.visibility=&#39;hidden&#39;">'):'<div class="ig-thumb"></div>';
-        const sprev=p.permalink?('<a href="'+igEsc(p.permalink)+'" target="_blank" rel="noopener">'+sth+'</a>'):sth;
+        const sprev=p.media_backup_url?('<a href="'+igEsc(p.media_backup_url)+'" target="_blank" rel="noopener" title="Ver imagen respaldada">'+sth+'</a>'):sth;
         return '<tr><td>'+sprev+'</td><td>'+fdate(p.date_published)+'</td>'
           +'<td><span class="ke-chip ke-c-neutral">'+igEsc(stTipo[p.media_type]||p.media_type||'Story')+'</span></td>'
           +'<td>'+igInt(p.reach)+'</td><td>'+igInt(p.views)+'</td><td>'+igInt(p.total_interactions)+'</td>'
-          +'<td>'+igInt(p.replies)+'</td><td>'+link+'</td></tr>';
+          +'<td>'+igInt(p.replies)+'</td></tr>';
       }).join('');
-      const stb=document.getElementById('ig-stbody'); if(stb) stb.innerHTML=stRows||'<tr><td colspan="8" class="ke-pg-sub">Sin stories registradas en el período (se capturan desde el 20/07 en adelante).</td></tr>';
+      const stb=document.getElementById('ig-stbody'); if(stb) stb.innerHTML=stRows||'<tr><td colspan="7" class="ke-pg-sub">Sin stories registradas en el período (se capturan desde el 20/07 en adelante).</td></tr>';
 
       const ages=['13-17','18-24','25-34','35-44','45-54','55-64','65+'];
       const byAge=ages.map(a=>demo.filter(d=>d.age===a).reduce((s,d)=>s+(+d.follower_demographics_count||0),0));
