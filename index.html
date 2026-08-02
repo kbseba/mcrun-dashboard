@@ -106,8 +106,11 @@ table.ke-t tbody tr:hover td{background:rgba(255,255,255,.012);}
 
 /* INSTAGRAM KPIs + TABLE */
 .ig-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:12px;}
-.ig-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;}
-@media(max-width:700px){.ig-sum{grid-template-columns:1fr;}}
+.ig-sum{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px;}
+@media(max-width:900px){.ig-sum{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:560px){.ig-sum{grid-template-columns:1fr;}}
+.ig-sel{background:var(--ke-bg);border:1px solid var(--ke-border);color:var(--ke-text);font-family:'Bitroad',sans-serif;font-size:10px;letter-spacing:.04em;border-radius:8px;padding:5px 8px;cursor:pointer;color-scheme:dark;}
+.ig-st-scroll thead th{position:sticky;top:0;z-index:2;}
 @media(max-width:900px){.ig-kpis{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:560px){.ig-kpis{grid-template-columns:repeat(2,1fr);}}
 .ig-t td,.ig-t th{white-space:nowrap;}
@@ -189,6 +192,7 @@ table.ke-t tbody tr:hover td{background:rgba(255,255,255,.012);}
   <div class="ke-sec-head"><div class="ke-sec-line"></div><span class="ke-sec-label">Resumen de cuenta</span></div>
   <div class="ig-sum">
     <div class="ke-kc"><div class="ke-kl">Seguidores</div><div class="ke-kv" id="ig-followers">—</div><div class="ke-ks" id="ig-ks-followers">Total de la cuenta</div></div>
+    <div class="ke-kc g"><div class="ke-kl">Seguidores netos</div><div class="ke-kv g" id="ig-netfoll">—</div><div class="ke-ks" id="ig-ks-netfoll">En el período</div></div>
     <div class="ke-kc b"><div class="ke-kl">Publicaciones en feed</div><div class="ke-kv b" id="ig-postcount">—</div><div class="ke-ks" id="ig-ks-postcount">En el período seleccionado</div></div>
     <div class="ke-kc p"><div class="ke-kl">Stories publicadas</div><div class="ke-kv p" id="ig-storycount">—</div><div class="ke-ks" id="ig-ks-storycount">En el período seleccionado</div></div>
   </div>
@@ -241,7 +245,7 @@ table.ke-t tbody tr:hover td{background:rgba(255,255,255,.012);}
   </div>
 
   <!-- Bloque 3 — Contenido publicado -->
-  <div class="ke-sec-head"><div class="ke-sec-line o"></div><span class="ke-sec-label">Mejores publicaciones · período seleccionado</span><span class="ke-sec-pill ke-pill-orange" id="ig-stat-posts">Top 5</span></div>
+  <div class="ke-sec-head"><div class="ke-sec-line o"></div><span class="ke-sec-label">Mejores publicaciones · período seleccionado</span><select id="ig-topn" class="ig-sel" onchange="window.igRenderPosts&&window.igRenderPosts()"><option value="10" selected>Top 10</option><option value="5">Top 5</option><option value="all">Todas</option></select><span class="ke-sec-pill ke-pill-orange" id="ig-stat-posts" style="margin-left:8px">Top 10</span></div>
   <div class="ke-block">
     <div class="ke-block-top"></div>
     <div style="overflow-x:auto">
@@ -260,8 +264,8 @@ table.ke-t tbody tr:hover td{background:rgba(255,255,255,.012);}
   <div class="ke-sec-head"><div class="ke-sec-line b"></div><span class="ke-sec-label">Stories · período seleccionado</span><span class="ke-sec-pill ke-pill-orange" id="ig-stat-stories">—</span></div>
   <div class="ke-block">
     <div class="ke-block-top"></div>
-    <div style="overflow-x:auto">
-      <table class="ke-t ig-t">
+    <div class="ig-st-box" style="overflow:auto;max-height:430px">
+      <table class="ke-t ig-t ig-st-scroll">
         <thead><tr><th>Preview</th><th>Fecha</th><th>Tipo</th><th class="acc">Alcance</th><th class="acc">Views</th><th class="acc">Interac.</th><th>Respuestas</th></tr></thead>
         <tbody id="ig-stbody"><tr><td colspan="7" class="ke-pg-sub">Cargando…</td></tr></tbody>
       </table>
@@ -441,6 +445,11 @@ labelRange();
       const L=LP.cur||{}, Lp=LP.prev, D=DP.cur||{}, Dp=DP.prev;
       if(L.username) igSet('ig-handle','@'+L.username);
       igSet('ig-followers',igInt(L.followers)); igSet('ig-stat-foll',igInt(L.followers));
+      const _pfN=(state&&state.from)?iso(state.from):null, _ptN=(state&&state.to)?iso(state.to):null;
+      const lifeAll=(life||[]).filter(r=>r&&r.fecha).sort((a,b)=>a.fecha<b.fecha?-1:1);
+      const lifeRange=(_pfN&&_ptN)?lifeAll.filter(r=>r.fecha>=_pfN&&r.fecha<=_ptN):lifeAll;
+      if(lifeRange.length>=2){ const f0=+lifeRange[0].followers||0, f1=+lifeRange[lifeRange.length-1].followers||0, net=f1-f0; igSet('ig-netfoll',(net>=0?'+':'-')+igInt(Math.abs(net))); igSet('ig-ks-netfoll','Del '+igShortDate(lifeRange[0].fecha)+' al '+igShortDate(lifeRange[lifeRange.length-1].fecha)); }
+      else { igSet('ig-netfoll','—'); igSet('ig-ks-netfoll','Necesita 2+ días de histórico'); }
       igSet('ig-reach',igInt(D.account_reach)); igSet('ig-views',igInt(D.account_views));
       igSet('ig-inter',igInt(D.account_total_interactions));
       igSet('ig-profile',igInt(D.account_profile_views)); igSet('ig-web',igInt(D.account_website_clicks));
@@ -474,22 +483,26 @@ labelRange();
       const _pf=(state&&state.from)||_mStart, _pt=(state&&state.to)?new Date(state.to.getFullYear(),state.to.getMonth(),state.to.getDate(),23,59,59):_now;
       const monthly=posts.filter(p=>{const d=new Date(p.date_published);return !isNaN(d)&&d>=_pf&&d<=_pt;});
       monthly.sort((a,b)=>(+b.total_interactions||0)-(+a.total_interactions||0));
-      const top=monthly.slice(0,5);
-      const rowsHTML=top.map(p=>{
-        const th=p.thumbnail_url
-          ?'<img class="ig-thumb" src="'+igEsc(p.thumbnail_url)+'" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility=&#39;hidden&#39;">'
-          :'<div class="ig-thumb"></div>';
-        const prev=p.permalink?('<a href="'+igEsc(p.permalink)+'" target="_blank" rel="noopener">'+th+'</a>'):th;
-        const cap=igEsc((p.caption||'').replace(/\s+/g,' ').trim().slice(0,130));
-        return '<tr><td>'+prev+'</td><td>'+fdate(p.date_published)+'</td>'
-          +'<td><span class="ke-chip ke-c-neutral">'+igEsc(tipo[p.media_product_type]||p.media_product_type||'—')+'</span></td>'
-          +'<td class="ig-cap">'+cap+'</td>'
-          +'<td>'+igInt(p.reach)+'</td><td>'+igInt(p.views)+'</td><td>'+igInt(p.total_interactions)+'</td>'
-          +'<td>'+igInt(p.likes)+'</td><td>'+igInt(p.comments)+'</td><td>'+igInt(p.saved)+'</td>'
-          +'<td>'+igInt(p.shares)+'</td><td>'+igInt(p.follows_from_post)+'</td></tr>';
-      }).join('');
-      document.getElementById('ig-tbody').innerHTML=rowsHTML||'<tr><td colspan="12" class="ke-pg-sub">Sin publicaciones en el período.</td></tr>';
-      igSet('ig-stat-posts','Top '+top.length+' del período');
+      const renderPosts=()=>{
+        const sel=document.getElementById('ig-topn'); const v=sel?sel.value:'10';
+        const n=(v==='all')?monthly.length:parseInt(v,10);
+        const top=monthly.slice(0,n);
+        const rowsHTML=top.map(p=>{
+          const th=p.thumbnail_url?('<img class="ig-thumb" src="'+igEsc(p.thumbnail_url)+'" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility=&#39;hidden&#39;">'):'<div class="ig-thumb"></div>';
+          const prev=p.permalink?('<a href="'+igEsc(p.permalink)+'" target="_blank" rel="noopener">'+th+'</a>'):th;
+          const cap=igEsc((p.caption||'').replace(/\s+/g,' ').trim().slice(0,130));
+          return '<tr><td>'+prev+'</td><td>'+fdate(p.date_published)+'</td>'
+            +'<td><span class="ke-chip ke-c-neutral">'+igEsc(tipo[p.media_product_type]||p.media_product_type||'—')+'</span></td>'
+            +'<td class="ig-cap">'+cap+'</td>'
+            +'<td>'+igInt(p.reach)+'</td><td>'+igInt(p.views)+'</td><td>'+igInt(p.total_interactions)+'</td>'
+            +'<td>'+igInt(p.likes)+'</td><td>'+igInt(p.comments)+'</td><td>'+igInt(p.saved)+'</td>'
+            +'<td>'+igInt(p.shares)+'</td><td>'+igInt(p.follows_from_post)+'</td></tr>';
+        }).join('');
+        const tb=document.getElementById('ig-tbody'); if(tb) tb.innerHTML=rowsHTML||'<tr><td colspan="12" class="ke-pg-sub">Sin publicaciones en el período.</td></tr>';
+        const pill=document.getElementById('ig-stat-posts'); if(pill) pill.textContent=(v==='all'?('Todas ('+monthly.length+')'):('Top '+top.length))+' del período';
+      };
+      window.igRenderPosts=renderPosts;
+      renderPosts();
       igSet('ig-postcount',igInt(monthly.length));
 
       // ---- Stories del período ----
