@@ -110,7 +110,7 @@ table.ke-t tbody tr:hover td{background:rgba(255,255,255,.012);}
 @media(max-width:900px){.ig-sum{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:560px){.ig-sum{grid-template-columns:1fr;}}
 .ig-sel{background:var(--ke-bg);border:1px solid var(--ke-border);color:var(--ke-text);font-family:'Bitroad',sans-serif;font-size:10px;letter-spacing:.04em;border-radius:8px;padding:5px 8px;cursor:pointer;color-scheme:dark;}
-.ig-st-scroll thead th{position:sticky;top:0;z-index:2;}
+.ig-scroll thead th{position:sticky;top:0;z-index:2;}
 @media(max-width:900px){.ig-kpis{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:560px){.ig-kpis{grid-template-columns:repeat(2,1fr);}}
 .ig-t td,.ig-t th{white-space:nowrap;}
@@ -248,8 +248,8 @@ table.ke-t tbody tr:hover td{background:rgba(255,255,255,.012);}
   <div class="ke-sec-head"><div class="ke-sec-line o"></div><span class="ke-sec-label">Mejores publicaciones · período seleccionado</span><select id="ig-topn" class="ig-sel" autocomplete="off" onchange="window.igRenderPosts&&window.igRenderPosts()"><option value="10" selected>Top 10</option><option value="5">Top 5</option><option value="all">Todas</option></select><span class="ke-sec-pill ke-pill-orange" id="ig-stat-posts" style="margin-left:8px">Top 10</span></div>
   <div class="ke-block">
     <div class="ke-block-top"></div>
-    <div style="overflow-x:auto">
-      <table class="ke-t ig-t">
+    <div style="overflow:auto;max-height:600px">
+      <table class="ke-t ig-t ig-scroll">
         <thead><tr>
           <th>Preview</th><th>Fecha</th><th>Tipo</th><th>Descripción</th>
           <th class="acc">Alcance</th><th class="acc">Reprod.</th><th class="acc">Interac.</th>
@@ -264,8 +264,8 @@ table.ke-t tbody tr:hover td{background:rgba(255,255,255,.012);}
   <div class="ke-sec-head"><div class="ke-sec-line b"></div><span class="ke-sec-label">Stories · período seleccionado</span><span class="ke-sec-pill ke-pill-orange" id="ig-stat-stories">—</span></div>
   <div class="ke-block">
     <div class="ke-block-top"></div>
-    <div class="ig-st-box" style="overflow:auto;max-height:430px">
-      <table class="ke-t ig-t ig-st-scroll">
+    <div style="overflow:auto;max-height:600px">
+      <table class="ke-t ig-t ig-scroll">
         <thead><tr><th>Preview</th><th>Fecha</th><th>Tipo</th><th class="acc">Alcance</th><th class="acc">Views</th><th class="acc">Interac.</th><th>Respuestas</th></tr></thead>
         <tbody id="ig-stbody"><tr><td colspan="7" class="ke-pg-sub">Cargando…</td></tr></tbody>
       </table>
