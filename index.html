@@ -319,7 +319,7 @@ async function loadInsights(area,elId){
   const el=document.getElementById(elId);if(!el)return;
   try{
     const headers={apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+SUPABASE_ANON_KEY};
-    const url=SUPABASE_URL+'/rest/v1/mcrun_insights?select=notion_id,semana,area,responsable,estatus,accionable,impacto_esperado,resumen&area=eq.'+encodeURIComponent(area)+'&order=semana.desc';
+    const url=SUPABASE_URL+'/rest/v1/mcrun_insights?select=notion_id,semana,area,responsable,estatus,accionable,impacto_esperado,resumen&order=semana.desc';
     const r=await fetch(url,{headers});if(!r.ok)throw new Error('insights '+r.status);
     const raw=await r.json();
     const seen={},rows=[];
